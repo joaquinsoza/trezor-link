@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
-    popup: "./src/popup.ts",
+    index: "./src/index.tsx",
     "service-worker": "./src/service-worker.ts",
   },
   output: {
@@ -12,17 +12,17 @@ module.exports = {
     filename: "[name].js",
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js", ".jsx"],
   },
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.(ts|tsx|js|jsx)$/,
         exclude: /node_modules/,
         use: ["babel-loader"],
       },
       {
-        test: /\.ts$/,
+        test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
@@ -35,9 +35,9 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/popup.html",
-      filename: "popup.html",
-      chunks: ["popup"],
+      template: "./src/index.html",
+      filename: "index.html",
+      chunks: ["index"],
     }),
     new CopyWebpackPlugin({
       patterns: [{ from: "src/manifest.json", to: "manifest.json" }],

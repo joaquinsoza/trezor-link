@@ -2,6 +2,7 @@
 // Reference the Web Worker library, allowing TypeScript to recognize service worker globals
 
 // Import using ES6 module TrezorConnect and the DEVICE_EVENT constant from the Trezor Connect WebExtension package
+//@ts-ignore
 import TrezorConnect from "@trezor/connect-webextension";
 
 // URL of the Trezor Connect
@@ -30,13 +31,13 @@ chrome.runtime.onInstalled.addListener(
           showOnTrezor: true,
           path: "m/49'/0'/0'/0/0",
           coin: "btc",
-        }).then((res) => {
+        }).then((res: any) => {
           sendResponse(res); // Send the response back to the sender
         });
         // Return true to indicate you want to send a response asynchronously
         return true;
       } else if (message.action === "getFeatures") {
-        TrezorConnect.getFeatures().then((res) => {
+        TrezorConnect.getFeatures().then((res: any) => {
           sendResponse(res); // Send the response back to the sender
         });
         // Return true to indicate you want to send a response asynchronously
