@@ -8,7 +8,7 @@
   "background": {
     "service_worker": "service-worker.js"
   },
-  "permissions": ["scripting"],
+  "permissions": ["scripting", "storage"],
   "host_permissions": [
     "*://connect.trezor.io/9/*",
     "*://suite.corp.sldev.cz/*",

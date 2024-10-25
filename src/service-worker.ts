@@ -42,6 +42,15 @@ chrome.runtime.onInstalled.addListener(
         });
         // Return true to indicate you want to send a response asynchronously
         return true;
+      } else if (message.action === "getStellarAddress") {
+        TrezorConnect.getStellarAddress({
+          showOnTrezor: true,
+          path: "m/49'/0'/0'/0/0",
+        }).then((res: any) => {
+          sendResponse(res); // Send the response back to the sender
+        });
+        // Return true to indicate you want to send a response asynchronously
+        return true;
       }
     });
   }
