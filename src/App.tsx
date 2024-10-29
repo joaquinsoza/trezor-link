@@ -48,21 +48,24 @@ const App = () => {
         );
       }
       chrome.storage.session.clear();
+      handleWalletDataLoad({
+        wallets: result[StorageKeys.SESSION_WALLET_DATA],
+      });
     });
     setHasWalletData(true);
-    setIsAuthenticated(true);
   };
 
   const handlePasswordEntered = (password: string) => {
-    const handleWalletDataLoad = (walletData: EncryptedWalletData | null) => {
-      if (walletData) {
-        walletContext?.setWallets(walletData.wallets);
-        setIsAuthenticated(true);
-      } else {
-        alert("Incorrect password.");
-      }
-    };
     loadWalletData(password, handleWalletDataLoad);
+  };
+
+  const handleWalletDataLoad = (walletData: EncryptedWalletData | null) => {
+    if (walletData) {
+      walletContext?.setWallets(walletData.wallets);
+      setIsAuthenticated(true);
+    } else {
+      alert("Incorrect password.");
+    }
   };
 
   if (!hasTemporaryData && !hasWalletData) {
