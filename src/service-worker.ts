@@ -26,7 +26,7 @@ chrome.runtime.onInstalled.addListener(
     // Event listener for messages from other parts of the extension
     // This code will depend on how you handle the communication between different parts of your webextension.
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message.action === "getAddress") {
+      if (message.action === "getBtcAddress") {
         TrezorConnect.getAddress({
           showOnTrezor: true,
           path: "m/49'/0'/0'/0/0",
@@ -43,14 +43,36 @@ chrome.runtime.onInstalled.addListener(
         // Return true to indicate you want to send a response asynchronously
         return true;
       } else if (message.action === "getStellarAddress") {
-        TrezorConnect.getStellarAddress({
-          showOnTrezor: true,
-          path: "m/49'/0'/0'/0/0",
+        TrezorConnect.stellarGetAddress({
+          path: "m/44'/148'/0'",
         }).then((res: any) => {
-          sendResponse(res); // Send the response back to the sender
+          if (res.success) {
+            chrome.storage.session.get("sessionWalletData", (result) => {
+              if (result.sessionWalletData) {
+                const wallets = result.sessionWalletData;
+                wallets.push({
+                  blockchain: "stellar",
+                  address: res.payload.address,
+                });
+                chrome.storage.session.set({ sessionWalletData: wallets });
+              } else {
+                chrome.storage.session.set({
+                  sessionWalletData: [
+                    {
+                      blockchain: "stellar",
+                      address: res.payload.address,
+                    },
+                  ],
+                });
+              }
+            });
+          }
+          sendResponse(res);
         });
         // Return true to indicate you want to send a response asynchronously
         return true;
+      } else if (message.logger) {
+        console.log(message.logger);
       }
     });
   }

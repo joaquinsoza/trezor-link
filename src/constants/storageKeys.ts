@@ -1,3 +1,3 @@
-export enum StorageKeys {
-  STELLAR_WALLET = "stellar_wallet",
+export enum StorageKeysAddress {
+  STELLAR_ADDRESS = "stellar_address",
 }

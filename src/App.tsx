@@ -1,22 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ConnectHardwareWallet } from "./views/ConnectHardwareWallet";
-import { UnlockConnectedWallet } from "./views/UnlockConnectedWallet";
 import { WalletView } from "./views/Wallet";
-import { StorageKeys } from "./constants/storageKeys";
-// import "styles.css";
-
-interface MessageResponse {
-  success: boolean;
-  [key: string]: any; // Adjust according to the actual response structure
-}
-
-// Create a Title component that'll render an <h1> tag with some styles
-const Title = styled.h1`
-  font-size: 1.5em;
-  text-align: center;
-  color: #bf4f74;
-`;
+import { StorageKeysAddress } from "./constants/storageKeys";
+import PasswordSetup from "./views/PasswordSetup";
+import PasswordPrompt from "./views/PasswordPrompt";
+import {
+  addWallet,
+  EncryptedWalletData,
+  loadWalletData,
+} from "./helpers/storage";
+import { WalletContext } from "./contexts/WalletContext";
 
 const Popup = styled.div`
   width: 100%;
@@ -24,30 +18,82 @@ const Popup = styled.div`
 `;
 
 const App = () => {
-  const [stellarWallet, setStellarWallet] = useState();
-  // i should get the storage first to check if there are any wallet connected
+  const walletContext = useContext(WalletContext);
+
+  const [hasTemporaryData, setHasTemporaryData] = useState(false);
+  const [hasWalletData, setHasWalletData] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
-    chrome.storage.local.get(StorageKeys.STELLAR_WALLET).then((response) => {
-      console.log("🚀 « response:", response);
-      // setStellarWallet(response);
+    chrome.storage.session.get("sessionWalletData", (result) => {
+      setHasTemporaryData(!!result.sessionWalletData);
+      chrome.runtime.sendMessage({ logger: result });
+    });
+
+    // Check if an encrypted address is stored
+    chrome.storage.local.get("encryptedWalletData", (result) => {
+      setHasWalletData(!!result.encryptedWalletData);
+      chrome.runtime.sendMessage({ logger: result });
     });
   }, []);
 
-  // MOCKUPS
-  //TODO: get somehow if there is any information stored for a wallet
-  const isFirstConnection = false;
-  //TODO should then decrypt the wallet with the password and then show it and keep it unlocked for x time
-  const isUnlockable = true;
-  // TODO: Know if its unlocked
-  const isUnlocked = false;
+  const handlePasswordSet = (password: string) => {
+    chrome.storage.session.get("sessionWalletData", (result) => {
+      if (result.sessionWalletData) {
+        addWallet(
+          result.sessionWalletData[0].blockchain,
+          result.sessionWalletData[0].address,
+          password,
+          walletContext
+        );
+      }
+      chrome.storage.session.clear();
+    });
+    setHasWalletData(true);
+    setIsAuthenticated(true);
+  };
 
-  return (
-    <Popup>
-      {isFirstConnection && <ConnectHardwareWallet />}
-      {isUnlockable && <UnlockConnectedWallet />}
-      {isUnlocked && <WalletView />}
-    </Popup>
-  );
+  const handlePasswordEntered = (password: string) => {
+    const handleWalletDataLoad = (walletData: EncryptedWalletData | null) => {
+      if (walletData) {
+        walletContext?.setWallets(walletData.wallets);
+        setIsAuthenticated(true);
+      } else {
+        alert("Incorrect password.");
+      }
+    };
+    loadWalletData(password, handleWalletDataLoad);
+  };
+
+  if (!hasTemporaryData && !hasWalletData) {
+    // First-time setup: prompt to set a password and connect wallet
+    return (
+      <Popup>
+        <ConnectHardwareWallet />
+      </Popup>
+    );
+  } else if (hasTemporaryData && !hasWalletData) {
+    // Should offer to set password to store data localy and clear the session data
+    return (
+      <Popup>
+        <PasswordSetup onPasswordSet={handlePasswordSet} />
+      </Popup>
+    );
+  } else if (hasWalletData && !isAuthenticated) {
+    // Should Authenticate the user with the password
+    return (
+      <Popup>
+        <PasswordPrompt onPasswordEntered={handlePasswordEntered} />
+      </Popup>
+    );
+  } else {
+    // User is authenticated; show wallet interface
+    return (
+      <Popup>
+        <WalletView />
+      </Popup>
+    );
+  }
 };
 
 export default App;

@@ -1,28 +1,11 @@
 import React from "react";
-import styled from "styled-components";
 import { BaseButton } from "../../components/BaseButton";
 import { FlexColumn, SmallText } from "../../components/Common";
 
-interface MessageResponse {
-  success: boolean;
-  [key: string]: any; // Adjust according to the actual response structure
-}
-
 export const ConnectHardwareWallet = () => {
   const ConnectWallet = () => {
-    chrome.runtime.sendMessage(
-      { action: "getAddress" },
-      (response: MessageResponse) => {
-        if (response.success) {
-          console.info(response);
-        } else {
-          console.error(response);
-        }
-      }
-    );
+    chrome.runtime.sendMessage({ action: "getStellarAddress" });
   };
-
-  // chrome.storage.local.set()
 
   return (
     <>
