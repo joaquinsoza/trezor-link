@@ -1,5 +1,5 @@
 {
-  "name": "@trezor/webextension-mv3-sw-ts",
+  "name": "trezor-link",
   "version": "1.0.0",
   "private": true,
   "license": "See LICENSE.md in repo root",
@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@trezor/connect-webextension": "^9.4.2",
-    "@types/crypto-js": "^4.2.2",
     "crypto-js": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -27,6 +26,7 @@
     "@types/chrome": "^0.0.279",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/crypto-js": "^4.2.2",
     "babel-loader": "^9.2.1",
     "copy-webpack-plugin": "^12.0.2",
     "html-webpack-plugin": "^5.6.0",
