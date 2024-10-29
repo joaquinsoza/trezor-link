@@ -4,6 +4,7 @@
 // Import using ES6 module TrezorConnect and the DEVICE_EVENT constant from the Trezor Connect WebExtension package
 //@ts-ignore
 import TrezorConnect from "@trezor/connect-webextension";
+import { StorageKeys } from "./constants/storageKeys";
 
 // URL of the Trezor Connect
 const connectSrc = "https://connect.trezor.io/9/";
@@ -47,25 +48,30 @@ chrome.runtime.onInstalled.addListener(
           path: "m/44'/148'/0'",
         }).then((res: any) => {
           if (res.success) {
-            chrome.storage.session.get("sessionWalletData", (result) => {
-              if (result.sessionWalletData) {
-                const wallets = result.sessionWalletData;
-                wallets.push({
-                  blockchain: "stellar",
-                  address: res.payload.address,
-                });
-                chrome.storage.session.set({ sessionWalletData: wallets });
-              } else {
-                chrome.storage.session.set({
-                  sessionWalletData: [
-                    {
-                      blockchain: "stellar",
-                      address: res.payload.address,
-                    },
-                  ],
-                });
+            chrome.storage.session.get(
+              StorageKeys.SESSION_WALLET_DATA,
+              (result) => {
+                if (result.sessionWalletData) {
+                  const wallets = result.sessionWalletData;
+                  wallets.push({
+                    blockchain: "stellar",
+                    address: res.payload.address,
+                  });
+                  chrome.storage.session.set({
+                    [StorageKeys.SESSION_WALLET_DATA]: wallets,
+                  });
+                } else {
+                  chrome.storage.session.set({
+                    [StorageKeys.SESSION_WALLET_DATA]: [
+                      {
+                        blockchain: "stellar",
+                        address: res.payload.address,
+                      },
+                    ],
+                  });
+                }
               }
-            });
+            );
           }
           sendResponse(res);
         });

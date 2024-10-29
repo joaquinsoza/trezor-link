@@ -1,4 +1,4 @@
-import { StorageKeysAddress } from "../constants/storageKeys";
+import { StorageKeys } from "../constants/storageKeys";
 import { WalletContextType } from "../contexts/WalletContext";
 import { decryptData, encryptData } from "./crypto";
 
@@ -17,16 +17,19 @@ export const saveWalletData = (
   const dataString = JSON.stringify(walletData);
   const ciphertext = encryptData(dataString, password);
 
-  chrome.storage.local.set({ encryptedWalletData: ciphertext }, () => {
-    console.log("Wallet data saved securely.");
-  });
+  chrome.storage.local.set(
+    { [StorageKeys.ENCRYPTED_WALLET_DATA]: ciphertext },
+    () => {
+      console.log("Wallet data saved securely.");
+    }
+  );
 };
 
 export const loadWalletData = (
   password: string,
   callback: (data: EncryptedWalletData | null) => void
 ) => {
-  chrome.storage.local.get("encryptedWalletData", (result) => {
+  chrome.storage.local.get([StorageKeys.ENCRYPTED_WALLET_DATA], (result) => {
     if (result.encryptedWalletData) {
       try {
         const decryptedData = decryptData(result.encryptedWalletData, password);

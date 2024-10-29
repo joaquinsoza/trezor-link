@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ConnectHardwareWallet } from "./views/ConnectHardwareWallet";
 import { WalletView } from "./views/Wallet";
-import { StorageKeysAddress } from "./constants/storageKeys";
 import PasswordSetup from "./views/PasswordSetup";
 import PasswordPrompt from "./views/PasswordPrompt";
 import {
@@ -11,6 +10,7 @@ import {
   loadWalletData,
 } from "./helpers/storage";
 import { WalletContext } from "./contexts/WalletContext";
+import { StorageKeys } from "./constants/storageKeys";
 
 const Popup = styled.div`
   width: 100%;
@@ -25,24 +25,24 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    chrome.storage.session.get("sessionWalletData", (result) => {
-      setHasTemporaryData(!!result.sessionWalletData);
+    chrome.storage.session.get(StorageKeys.SESSION_WALLET_DATA, (result) => {
+      setHasTemporaryData(!!result[StorageKeys.SESSION_WALLET_DATA]);
       chrome.runtime.sendMessage({ logger: result });
     });
 
     // Check if an encrypted address is stored
-    chrome.storage.local.get("encryptedWalletData", (result) => {
-      setHasWalletData(!!result.encryptedWalletData);
+    chrome.storage.local.get(StorageKeys.ENCRYPTED_WALLET_DATA, (result) => {
+      setHasWalletData(!!result[StorageKeys.ENCRYPTED_WALLET_DATA]);
       chrome.runtime.sendMessage({ logger: result });
     });
   }, []);
 
   const handlePasswordSet = (password: string) => {
-    chrome.storage.session.get("sessionWalletData", (result) => {
-      if (result.sessionWalletData) {
+    chrome.storage.session.get(StorageKeys.SESSION_WALLET_DATA, (result) => {
+      if (result[StorageKeys.SESSION_WALLET_DATA]) {
         addWallet(
-          result.sessionWalletData[0].blockchain,
-          result.sessionWalletData[0].address,
+          result[StorageKeys.SESSION_WALLET_DATA][0].blockchain,
+          result[StorageKeys.SESSION_WALLET_DATA][0].address,
           password,
           walletContext
         );
