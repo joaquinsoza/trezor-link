@@ -2,9 +2,19 @@ import React from "react";
 import { BaseButton } from "../../components/BaseButton";
 import { FlexColumn, SmallText } from "../../components/Common";
 
-export const ConnectHardwareWallet = () => {
+export const ConnectHardwareWallet = ({
+  callback,
+}: {
+  callback: (response: any) => void;
+}) => {
   const ConnectWallet = () => {
-    chrome.runtime.sendMessage({ action: "getStellarAddress" });
+    chrome.runtime.sendMessage({ action: "getStellarAddress" }, (response) => {
+      if (response.success) {
+        callback(response);
+      } else {
+        console.error("Failed to get stellar address");
+      }
+    });
   };
 
   return (

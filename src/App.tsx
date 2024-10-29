@@ -25,16 +25,28 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    chrome.storage.session.get(StorageKeys.SESSION_WALLET_DATA, (result) => {
-      setHasTemporaryData(!!result[StorageKeys.SESSION_WALLET_DATA]);
-      chrome.runtime.sendMessage({ logger: result });
-    });
+    async function loadData() {
+      const sessionData = await new Promise<{ [key: string]: any }>((resolve) =>
+        chrome.storage.session.get([StorageKeys.SESSION_WALLET_DATA], resolve)
+      );
+      const localData = await new Promise<{ [key: string]: any }>((resolve) =>
+        chrome.storage.local.get([StorageKeys.ENCRYPTED_WALLET_DATA], resolve)
+      );
 
-    // Check if an encrypted address is stored
-    chrome.storage.local.get(StorageKeys.ENCRYPTED_WALLET_DATA, (result) => {
-      setHasWalletData(!!result[StorageKeys.ENCRYPTED_WALLET_DATA]);
-      chrome.runtime.sendMessage({ logger: result });
-    });
+      const tempData = !!sessionData[StorageKeys.SESSION_WALLET_DATA];
+      const walletData = !!localData[StorageKeys.ENCRYPTED_WALLET_DATA];
+
+      setHasTemporaryData(tempData);
+      setHasWalletData(walletData);
+
+      if (!tempData && !walletData) {
+        // Both are false, open setup page
+        chrome.tabs.create({ url: "/setup.html" });
+        window.close();
+      }
+    }
+
+    loadData();
   }, []);
 
   const handlePasswordSet = (password: string) => {
@@ -68,18 +80,30 @@ const App = () => {
     }
   };
 
-  if (!hasTemporaryData && !hasWalletData) {
-    // First-time setup: prompt to set a password and connect wallet
+  // if (hasWalletData === null) {
+  //   // While loading
+  //   return (
+  //     <Popup>
+  //       <div>Loading...</div>
+  //     </Popup>
+  //   );
+  // }
+
+  // Handle loading state
+  if (hasTemporaryData === null || hasWalletData === null) {
+    // While loading
     return (
       <Popup>
-        <ConnectHardwareWallet />
+        <div>Loading...</div>
       </Popup>
     );
-  } else if (hasTemporaryData && !hasWalletData) {
+  }
+
+  if (hasTemporaryData && !hasWalletData) {
     // Should offer to set password to store data localy and clear the session data
     return (
       <Popup>
-        <PasswordSetup onPasswordSet={handlePasswordSet} />
+        <div>Please complete the setup in the newly opened tab.</div>
       </Popup>
     );
   } else if (hasWalletData && !isAuthenticated) {
@@ -89,11 +113,18 @@ const App = () => {
         <PasswordPrompt onPasswordEntered={handlePasswordEntered} />
       </Popup>
     );
-  } else {
+  } else if (isAuthenticated) {
     // User is authenticated; show wallet interface
     return (
       <Popup>
         <WalletView />
+      </Popup>
+    );
+  } else {
+    // Should not reach here, but handle gracefully
+    return (
+      <Popup>
+        <div>Please complete the setup.</div>
       </Popup>
     );
   }

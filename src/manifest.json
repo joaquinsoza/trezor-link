@@ -8,12 +8,18 @@
   "background": {
     "service_worker": "service-worker.js"
   },
-  "permissions": ["scripting", "storage"],
+  "permissions": ["scripting", "storage", "tabs"],
   "host_permissions": [
     "*://connect.trezor.io/9/*",
     "*://suite.corp.sldev.cz/*",
     "*://localhost/*",
     "*://staging-connect.trezor.io/*",
     "*://dev.suite.sldev.cz/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["setup.html", "setup.js"],
+      "matches": ["*://*/*"]
+    }
   ]
 }

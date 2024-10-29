@@ -5,6 +5,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 module.exports = {
   entry: {
     index: "./src/index.tsx",
+    setup: "./src/setup/setup.tsx",
     "service-worker": "./src/service-worker.ts",
   },
   output: {
@@ -38,6 +39,11 @@ module.exports = {
       template: "./src/index.html",
       filename: "index.html",
       chunks: ["index"],
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/setup/setup.html",
+      filename: "setup.html",
+      chunks: ["setup"],
     }),
     new CopyWebpackPlugin({
       patterns: [{ from: "src/manifest.json", to: "manifest.json" }],
