@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
-import { ConnectHardwareWallet } from "./views/ConnectHardwareWallet";
 import { WalletView } from "./views/Wallet";
-import PasswordSetup from "./views/PasswordSetup";
 import PasswordPrompt from "./views/PasswordPrompt";
 import {
   addWallet,
@@ -49,24 +47,6 @@ const App = () => {
     loadData();
   }, []);
 
-  const handlePasswordSet = (password: string) => {
-    chrome.storage.session.get(StorageKeys.SESSION_WALLET_DATA, (result) => {
-      if (result[StorageKeys.SESSION_WALLET_DATA]) {
-        addWallet(
-          result[StorageKeys.SESSION_WALLET_DATA][0].blockchain,
-          result[StorageKeys.SESSION_WALLET_DATA][0].address,
-          password,
-          walletContext
-        );
-      }
-      chrome.storage.session.clear();
-      handleWalletDataLoad({
-        wallets: result[StorageKeys.SESSION_WALLET_DATA],
-      });
-    });
-    setHasWalletData(true);
-  };
-
   const handlePasswordEntered = (password: string) => {
     loadWalletData(password, handleWalletDataLoad);
   };
@@ -80,18 +60,7 @@ const App = () => {
     }
   };
 
-  // if (hasWalletData === null) {
-  //   // While loading
-  //   return (
-  //     <Popup>
-  //       <div>Loading...</div>
-  //     </Popup>
-  //   );
-  // }
-
-  // Handle loading state
   if (hasTemporaryData === null || hasWalletData === null) {
-    // While loading
     return (
       <Popup>
         <div>Loading...</div>

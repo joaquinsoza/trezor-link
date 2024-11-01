@@ -1,22 +1,65 @@
-import React, { useContext } from "react";
-import styled from "styled-components";
+import React, { useContext, useEffect, useState } from "react";
+import styled, { keyframes } from "styled-components";
 import { WalletContext } from "../../contexts/WalletContext";
 import { shortenAddress } from "../../helpers/address";
+import { useAccountData } from "../../hooks/useAccountData";
+import LoadingView from "../Loading";
+import MessageCarousel from "../../components/MessageCarousel";
 
 // Main Wallet View Component
 export const WalletView = () => {
   const walletContext = useContext(WalletContext);
 
+  const wallet = walletContext?.wallets[0];
+  const chain = wallet?.blockchain || "stellar"; // Default to 'stellar'
+  const address = wallet?.address || "";
+
+  const { accountData, loading, error } = useAccountData(chain, address);
+
+  const [messages, setMessages] = useState<{ id: number; text: string }[]>([]);
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error);
+      if (error.status === 404) {
+        addMessage(error.message);
+      } else {
+        addMessage(`Error: ${error.message || "An error occurred."}`);
+      }
+    }
+  }, [error]);
+
+  const addMessage = (text: string) => {
+    setMessages((prevMessages) => [...prevMessages, { id: Date.now(), text }]);
+  };
+
+  const onCloseMessage = (id: number) => {
+    setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== id));
+  };
+
+  if (loading) {
+    return <LoadingView />;
+  }
+
+  // Extract balances
+  const balances = accountData?.balances || [];
+  const xlmBalance =
+    balances.find((b: any) => b.asset === "XLM")?.amount || "0";
+
   return (
     <Container>
       <Header>
-        <AccountText>
-          {shortenAddress(walletContext?.wallets[0].address as string)}
-        </AccountText>
+        <AccountText>{shortenAddress(address)}</AccountText>
       </Header>
       <BalanceSection>
-        <Balance>$1,010.05</Balance>
-        <BalanceChange>+233.36 +13.27%</BalanceChange>
+        <Balance>
+          {Number(xlmBalance).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+          })}{" "}
+          XLM
+        </Balance>
+        {/* You can calculate balance change if needed */}
+        {/* <BalanceChange>+233.36 +13.27%</BalanceChange> */}
       </BalanceSection>
       <ActionButtons>
         <ActionButton>Receive</ActionButton>
@@ -24,15 +67,17 @@ export const WalletView = () => {
         <ActionButton>Swap</ActionButton>
         <ActionButton>Buy</ActionButton>
       </ActionButtons>
+      {/* Add MessageCarousel here */}
+      {messages.length > 0 && (
+        <MessageCarousel messages={messages} onCloseMessage={onCloseMessage} />
+      )}
       <TokenList>
-        <TokenItem>
-          <TokenName>GG</TokenName>
-          <TokenBalance>1000</TokenBalance>
-        </TokenItem>
-        <TokenItem>
-          <TokenName>Ga</TokenName>
-          <TokenBalance>1000</TokenBalance>
-        </TokenItem>
+        {balances.map((balance: any, index: any) => (
+          <TokenItem key={index}>
+            <TokenName>{balance.asset}</TokenName>
+            <TokenBalance>{balance.amount}</TokenBalance>
+          </TokenItem>
+        ))}
       </TokenList>
     </Container>
   );
@@ -70,11 +115,6 @@ const BalanceSection = styled.div`
 const Balance = styled.h1`
   font-size: 32px;
   margin: 0;
-`;
-
-const BalanceChange = styled.p`
-  font-size: 14px;
-  color: #4caf50;
 `;
 
 const ActionButtons = styled.div`
